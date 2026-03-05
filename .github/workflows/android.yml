@@ -13,21 +13,26 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Instalar Build Tools 30.0.3
+        run: |
+          # Instalamos las herramientas que Cordova está pidiendo
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;30.0.3" "platforms;android-30"
+
       - name: Instalar Gradle compatible
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '7.6' # <--- Versión mágica que tiene XmlParser
+          gradle-version: '7.6'
 
       - name: Build APK
         run: |
           npm install -g cordova@11.0.0
           cordova platform add android@10.1.2
           
-          # Forzamos a que el proyecto use Gradle 7.6 y no el 9 de GitHub
+          # Forzamos Gradle 7.6
           mkdir -p platforms/android/gradle/wrapper
           echo "distributionUrl=https\://services.gradle.org/distributions/gradle-7.6-all.zip" > platforms/android/gradle/wrapper/gradle-wrapper.properties
           
-          # Ajustes para que no falle con las librerías modernas
+          # Ajustes de compatibilidad
           echo "android.useAndroidX=true" >> platforms/android/gradle.properties
           echo "android.enableJetifier=true" >> platforms/android/gradle.properties
           
