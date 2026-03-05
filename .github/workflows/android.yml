@@ -1,4 +1,4 @@
-name: Build APK Final-Final
+name: Build APK Final Real
 on: [push, workflow_dispatch]
 
 jobs:
@@ -7,33 +7,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Java 11
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17' # Java 17 para que el sdkmanager no falle
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        env:
-          # Esta línea es la que nos pedía el error para poder seguir con Java 11
-          SKIP_JDK_VERSION_CHECK: 'true'
 
-      - name: Instalar Build Tools 30.0.3
-        run: |
-          sdkmanager "build-tools;30.0.3" "platforms;android-30"
-        env:
-          SKIP_JDK_VERSION_CHECK: 'true'
-
-      - name: Construir Proyecto
+      - name: Build con Cordova
         run: |
           npm install -g cordova@11.0.0
           cordova platform add android@10.1.2
-          echo "android.useAndroidX=true" >> platforms/android/gradle.properties
-          echo "android.enableJetifier=true" >> platforms/android/gradle.properties
-          cordova build android --debug
-        env:
-          SKIP_JDK_VERSION_CHECK: 'true'
+          # Forzamos a que use las herramientas de build 30.0.3
+          sdkmanager "build-tools;30.0.3"
+          cordova build android --debug --device -- --gradleArg=-Pandroid.useAndroidX=true --gradleArg=-Pandroid.enableJetifier=true
 
       - name: Subir APK
         uses: actions/upload-artifact@v4
