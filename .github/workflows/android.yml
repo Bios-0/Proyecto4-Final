@@ -7,33 +7,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Java 11
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11' # Cordova 10 prefiere Java 11 para la estabilidad final
+          java-version: '17'
+
+      # Esta Action configura el SDK de Android automáticamente sin errores de Java
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Instalar Build Tools 30.0.3
         run: |
-          # Instalamos las herramientas que Cordova está pidiendo
-          # El comando 'yes' acepta las licencias automáticamente
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;30.0.3" "platforms;android-30"
-
-      - name: Instalar Gradle compatible
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '7.6'
+          sdkmanager "build-tools;30.0.3" "platforms;android-30"
 
       - name: Build APK
         run: |
           npm install -g cordova@11.0.0
           cordova platform add android@10.1.2
           
-          # Forzamos Gradle 7.6 en el wrapper
+          # Forzamos Gradle 7.6 para que no falte el XmlParser
           mkdir -p platforms/android/gradle/wrapper
           echo "distributionUrl=https\://services.gradle.org/distributions/gradle-7.6-all.zip" > platforms/android/gradle/wrapper/gradle-wrapper.properties
           
-          # Ajustes de compatibilidad de AndroidX
+          # Ajustes de compatibilidad
           echo "android.useAndroidX=true" >> platforms/android/gradle.properties
           echo "android.enableJetifier=true" >> platforms/android/gradle.properties
           
