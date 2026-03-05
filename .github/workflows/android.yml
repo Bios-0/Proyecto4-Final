@@ -16,6 +16,11 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      - name: Install Android Build Tools
+        run: |
+          # Instalamos específicamente la versión 30.0.3 que pide el error
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;30.0.3"
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -26,14 +31,11 @@ jobs:
           npm install -g cordova@11.0.0
           cordova platform add android@10.1.2
           
-          # Forzamos la configuración de Gradle
+          # Configuración de Gradle Wrapper
           mkdir -p platforms/android/gradle/wrapper
           echo "distributionUrl=https\://services.gradle.org/distributions/gradle-7.6-all.zip" > platforms/android/gradle/wrapper/gradle-wrapper.properties
           
-          # Limpieza de seguridad
-          cd platforms/android && ./gradlew clean && cd ../..
-          
-          # Construcción
+          # Ajustes de compatibilidad y construcción
           cordova build android --debug --device -- --gradleArg=-Pandroid.useAndroidX=true --gradleArg=-Pandroid.enableJetifier=true
 
       - name: Upload APK
