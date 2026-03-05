@@ -14,12 +14,12 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17' # <--- Subimos a 17 para que el sdkmanager funcione
+          java-version: '17'
 
       - name: Install Android Build Tools 30.0.3
         run: |
-          # Ahora con Java 17, este comando NO fallará
-          yes | sdkmanager --sdk_root=$ANDROID_HOME "build-tools;30.0.3"
+          # Usamos la ruta completa del SDK Manager para que no diga "not found"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;30.0.3"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -31,11 +31,11 @@ jobs:
           npm install -g cordova@11.0.0
           cordova platform add android@10.1.2
           
-          # Forzamos Gradle 7.6 para evitar el error de XmlParser
+          # Forzamos Gradle 7.6
           mkdir -p platforms/android/gradle/wrapper
           echo "distributionUrl=https\://services.gradle.org/distributions/gradle-7.6-all.zip" > platforms/android/gradle/wrapper/gradle-wrapper.properties
           
-          # Construcción con parámetros de compatibilidad
+          # Construcción final
           cordova build android --debug --device -- --gradleArg=-Pandroid.useAndroidX=true --gradleArg=-Pandroid.enableJetifier=true
 
       - name: Upload APK
