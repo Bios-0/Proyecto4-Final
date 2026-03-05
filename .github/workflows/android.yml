@@ -1,29 +1,27 @@
-name: Build APK Definitiva
+name: Build APK Final
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Usamos una "máquina dentro de la máquina" que ya tiene todo configurado
-    container:
-      image: beevelop/cordova:latest
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Aceptar Licencias de Android
-        run: |
-          mkdir -p /opt/android-sdk/licenses
-          echo "24333f8a63b6825ea9c5573f83c2eb295f224713" > /opt/android-sdk/licenses/android-sdk-license
-          echo "84831b9409646a918e30573bab4c9c91346d8abd" > /opt/android-sdk/licenses/android-sdk-preview-license
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11' # La versión perfecta para Cordova 10
 
-      - name: Construir Proyecto
-        run: |
-          cordova platform add android@10.1.2
-          cordova build android --debug --device -- --gradleArg=-Pandroid.useAndroidX=true --gradleArg=-Pandroid.enableJetifier=true
+      - name: Construir Android con Action Oficial
+        uses: ionelmc/cordova-build-action@v1
+        with:
+          platform: android
+          # Esto fuerza a que use las librerías modernas de Android sin romper nada
+          args: --debug --device -- --gradleArg=-Pandroid.useAndroidX=true --gradleArg=-Pandroid.enableJetifier=true
 
-      - name: Subir APK Resultante
+      - name: Descargar mi APK
         uses: actions/upload-artifact@v4
         with:
-          name: MiJuego-Final-APK
+          name: MiJuego-Proyecto4
           path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
