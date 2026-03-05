@@ -1,4 +1,4 @@
-name: Build APK Final Real
+name: Build Android APK
 on: [push, workflow_dispatch]
 
 jobs:
@@ -11,21 +11,30 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17' # Java 17 para que el sdkmanager no falle
+          java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Instalar Gradle compatible
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '7.6' # <--- Versión mágica que tiene XmlParser
 
-      - name: Build con Cordova
+      - name: Build APK
         run: |
           npm install -g cordova@11.0.0
           cordova platform add android@10.1.2
-          # Forzamos a que use las herramientas de build 30.0.3
-          sdkmanager "build-tools;30.0.3"
-          cordova build android --debug --device -- --gradleArg=-Pandroid.useAndroidX=true --gradleArg=-Pandroid.enableJetifier=true
+          
+          # Forzamos a que el proyecto use Gradle 7.6 y no el 9 de GitHub
+          mkdir -p platforms/android/gradle/wrapper
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-7.6-all.zip" > platforms/android/gradle/wrapper/gradle-wrapper.properties
+          
+          # Ajustes para que no falle con las librerías modernas
+          echo "android.useAndroidX=true" >> platforms/android/gradle.properties
+          echo "android.enableJetifier=true" >> platforms/android/gradle.properties
+          
+          cordova build android --debug
 
-      - name: Subir APK
+      - name: Entregar APK
         uses: actions/upload-artifact@v4
         with:
-          name: MiJuego-Proyecto4
+          name: MiJuego-Final
           path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
