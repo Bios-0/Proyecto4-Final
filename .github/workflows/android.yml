@@ -14,14 +14,23 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '11' # Volvemos a 11 porque Gradle 7 prefiere Java 11
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '7.6' # Esta versión SÍ tiene el XmlParser que necesita Cordova
 
       - name: Build APK
         run: |
           npm install -g cordova@11.0.0
           cordova platform add android@10.1.2
+          # Forzamos a que el proyecto use el Gradle que acabamos de instalar
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-7.6-bin.zip" > platforms/android/gradle/wrapper/gradle-wrapper.properties
+          
           echo "android.useAndroidX=true" >> platforms/android/gradle.properties
           echo "android.enableJetifier=true" >> platforms/android/gradle.properties
+          
           cordova build android --debug
 
       - name: Upload APK
