@@ -1,4 +1,4 @@
-name: Build APK Directo
+name: Build APK Definitivo
 on: [push, workflow_dispatch]
 
 jobs:
@@ -13,17 +13,20 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      - name: Instalar Herramientas de Android
+      # Este paso instala las herramientas que GitHub "dice" que no encuentra
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar Build Tools 30.0.3
         run: |
-          # Instalamos la versión exacta que pide Cordova 10
-          sdkmanager --install "build-tools;30.0.3" "platforms;android-30"
+          sdkmanager "build-tools;30.0.3" "platforms;android-30"
 
       - name: Construir Proyecto
         run: |
           npm install -g cordova@11.0.0
           cordova platform add android@10.1.2
           
-          # Forzamos la compatibilidad moderna
+          # Forzamos compatibilidad
           echo "android.useAndroidX=true" >> platforms/android/gradle.properties
           echo "android.enableJetifier=true" >> platforms/android/gradle.properties
           
