@@ -1,4 +1,4 @@
-name: Build APK Definitivo
+name: Build APK Final-Final
 on: [push, workflow_dispatch]
 
 jobs:
@@ -13,24 +13,27 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      # Este paso instala las herramientas que GitHub "dice" que no encuentra
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        env:
+          # Esta línea es la que nos pedía el error para poder seguir con Java 11
+          SKIP_JDK_VERSION_CHECK: 'true'
 
       - name: Instalar Build Tools 30.0.3
         run: |
           sdkmanager "build-tools;30.0.3" "platforms;android-30"
+        env:
+          SKIP_JDK_VERSION_CHECK: 'true'
 
       - name: Construir Proyecto
         run: |
           npm install -g cordova@11.0.0
           cordova platform add android@10.1.2
-          
-          # Forzamos compatibilidad
           echo "android.useAndroidX=true" >> platforms/android/gradle.properties
           echo "android.enableJetifier=true" >> platforms/android/gradle.properties
-          
           cordova build android --debug
+        env:
+          SKIP_JDK_VERSION_CHECK: 'true'
 
       - name: Subir APK
         uses: actions/upload-artifact@v4
