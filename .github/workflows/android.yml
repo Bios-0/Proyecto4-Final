@@ -1,4 +1,4 @@
-name: Build APK Final
+name: Build APK Directo
 on: [push, workflow_dispatch]
 
 jobs:
@@ -7,20 +7,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Setup Java 11
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11' # La versión perfecta para Cordova 10
+          java-version: '11'
 
-      - name: Construir Android con Action Oficial
-        uses: ionelmc/cordova-build-action@v1
-        with:
-          platform: android
-          # Esto fuerza a que use las librerías modernas de Android sin romper nada
-          args: --debug --device -- --gradleArg=-Pandroid.useAndroidX=true --gradleArg=-Pandroid.enableJetifier=true
+      - name: Instalar Herramientas de Android
+        run: |
+          # Instalamos la versión exacta que pide Cordova 10
+          sdkmanager --install "build-tools;30.0.3" "platforms;android-30"
 
-      - name: Descargar mi APK
+      - name: Construir Proyecto
+        run: |
+          npm install -g cordova@11.0.0
+          cordova platform add android@10.1.2
+          
+          # Forzamos la compatibilidad moderna
+          echo "android.useAndroidX=true" >> platforms/android/gradle.properties
+          echo "android.enableJetifier=true" >> platforms/android/gradle.properties
+          
+          cordova build android --debug
+
+      - name: Subir APK
         uses: actions/upload-artifact@v4
         with:
           name: MiJuego-Proyecto4
